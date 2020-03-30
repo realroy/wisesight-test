@@ -1,0 +1,41 @@
+version: '3.7'
+services:
+  db:
+    image: mongo:4.2.3-bionic
+    restart: always
+    volumes:
+      - ./db:/data/db
+    restart: always
+    networks:
+      - internal-network
+  db_seed:
+    build: ./db_seed
+    environment:
+      - COLLECTION_NAME=${COLLECTION_NAME}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - db
+    networks:
+      - internal-network
+  api:
+    build: ./api
+    depends_on:
+      - db
+    environment:
+      - MONGO_URI=mongodb://db
+      - MONGO_DB_NAME=${DB_NAME}
+      - MONGO_COLLECTION_NAME=${COLLECTION_NAME}
+    networks:
+      - internal-network
+    restart: always
+  web:
+    build: ./web
+    ports:
+      - 3000:80
+    depends_on:
+      - api
+    restart: always
+    networks:
+      - internal-network
+networks:
+  internal-network:

@@ -1,0 +1,4 @@
+db
+db_seed/data.json
+db_seed/rawdata.csv
+.vscode
