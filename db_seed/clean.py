@@ -27,8 +27,7 @@ def arrange_lines(lines=[]):
     
     return cleaned_lines
 
-def to_json(lines=[]):
-    dicts = []
+def to_json(line):
     pattern = ','.join([
         r'^(?P<id>.*)',
         r'(?P<type>\w+)',
@@ -40,18 +39,15 @@ def to_json(lines=[]):
         r'(?P<owner_name>.*)$',
     ])
 
-    for line in tqdm(lines):
-        m = re.match(pattern, line)
+    m = re.match(pattern, line)
         
-        if m is None: continue
+    if m is None: return
         
-        groupdict = m.groupdict()
-        groupdict['words'] = word_tokenize(groupdict['message'], keep_whitespace=False)
-        groupdict['hashtags'] = re.findall(r'(#.*) ', groupdict['message'])
-
-        dicts.append(groupdict)
+    groupdict = m.groupdict()
+    groupdict['words'] = word_tokenize(groupdict['message'], keep_whitespace=False)
+    groupdict['hashtags'] = re.findall(r'(#.*) ', groupdict['message'])
     
-    return json.dumps(dicts)
+    return json.dumps(groupdict)
 
 
 if __name__ == '__main__':
@@ -60,5 +56,14 @@ if __name__ == '__main__':
         lines = f.readlines()
     
     with open('./data.json', 'w') as f:
-        data = to_json(arrange_lines(lines))
-        f.write(data)
+        f.write('[\n')
+    
+    with open('./data.json', 'a') as f:
+        for l in tqdm(arrange_lines(lines)):
+            data = to_json(l)
+            
+            if data is None: continue
+            
+            f.write(data + ',\n')
+
+        f.write(']\n')
